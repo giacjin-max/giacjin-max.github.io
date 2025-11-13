@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generatore Markdown Avanzato Continuo</title>
+<title>Generatore Markdown Cinese/Italiano Avanzato</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
@@ -15,7 +15,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 </head>
 <body>
 
-<h2>📘 Generatore Markdown Avanzato Continuo</h2>
+<h2>📘 Generatore Markdown Cinese / Italiano</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -34,7 +34,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 <script>
 function isChinese(str){ return /[\u4e00-\u9fff]/.test(str); }
 
-// Funzione semplice pinyin
+// Funzione semplice pinyin (aggiungi altri caratteri se vuoi)
 function simplePinyin(str){
   const map = {"你":"ni","好":"hao","我":"wo","的":"de"}; 
   return str.split('').map(c=>map[c]||c).join('');
@@ -60,6 +60,7 @@ document.getElementById('gen').onclick = () => {
   const chinese = [];
   const italian = [];
 
+  // Separazione cinese / italiano
   titles.forEach((t,i)=>{
     const link = links[i];
     if(isChinese(t)){
@@ -69,54 +70,48 @@ document.getElementById('gen').onclick = () => {
     }
   });
 
+  // Ordinamento completo
   chinese.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
   italian.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
 
   const groupedChinese = groupByInitial(chinese);
   const groupedItalian = groupByInitial(italian);
 
-  // Genera Markdown con numerazione continua
-  let markdown = "### CINESE\n";
-  let counter = 1;
-  Object.keys(groupedChinese).sort().forEach(letter=>{
-    markdown += `\n## ${letter}\n`;
-    groupedChinese[letter].forEach(item=>{
-      markdown += `${counter}. ${item.title} ${item.link}\n`;
-      counter++;
+  // Genera Markdown con numerazione continua per sezione
+  function generateMarkdown(groups){
+    let markdown = "";
+    let counter = 1;
+    Object.keys(groups).sort().forEach(letter=>{
+      markdown += `\n## ${letter}\n`;
+      groups[letter].forEach(item=>{
+        markdown += `${counter}. ${item.title} ${item.link}\n`;
+        counter++;
+      });
     });
-  });
+    return markdown;
+  }
 
-  markdown += "\n### ITALIANO\n";
-  Object.keys(groupedItalian).sort().forEach(letter=>{
-    markdown += `\n## ${letter}\n`;
-    groupedItalian[letter].forEach(item=>{
-      markdown += `${counter}. ${item.title} ${item.link}\n`;
-      counter++;
-    });
-  });
+  let markdown = "### CINESE\n" + generateMarkdown(groupedChinese);
+  markdown += "\n### ITALIANO\n" + generateMarkdown(groupedItalian);
 
   document.getElementById('out').textContent = markdown.trim();
 
-  // Anteprima HTML
-  let html = "<h3>CINESE</h3>";
-  counter = 1;
-  Object.keys(groupedChinese).sort().forEach(letter=>{
-    html += `<h4>${letter}</h4>`;
-    groupedChinese[letter].forEach(item=>{
-      html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
-      counter++;
+  // Anteprima HTML cliccabile
+  function generatePreview(groups){
+    let html = "";
+    let counter = 1;
+    Object.keys(groups).sort().forEach(letter=>{
+      html += `<h4>${letter}</h4>`;
+      groups[letter].forEach(item=>{
+        html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+        counter++;
+      });
     });
-  });
+    return html;
+  }
 
-  html += "<h3>ITALIANO</h3>";
-  Object.keys(groupedItalian).sort().forEach(letter=>{
-    html += `<h4>${letter}</h4>`;
-    groupedItalian[letter].forEach(item=>{
-      html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
-      counter++;
-    });
-  });
-
+  let html = "<h3>CINESE</h3>" + generatePreview(groupedChinese);
+  html += "<h3>ITALIANO</h3>" + generatePreview(groupedItalian);
   document.getElementById('preview').innerHTML = html;
 };
 
