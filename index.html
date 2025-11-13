@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generatore Markdown Cinese/Italiano</title>
+<title>Generatore Markdown Avanzato</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
@@ -15,7 +15,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 </head>
 <body>
 
-<h2>📘 Generatore Markdown Cinese / Italiano</h2>
+<h2>📘 Generatore Markdown Avanzato</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -40,6 +40,17 @@ function simplePinyin(str){
   return str.split('').map(c=>map[c]||c).join('');
 }
 
+// Raggruppa un array per iniziale
+function groupByInitial(list){
+  const groups = {};
+  list.forEach(item=>{
+    const letter = item.pinyin[0].toUpperCase();
+    if(!groups[letter]) groups[letter] = [];
+    groups[letter].push(item);
+  });
+  return groups;
+}
+
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
   const links = document.getElementById('links').value.trim().split(/\r?\n/).filter(Boolean);
@@ -49,7 +60,6 @@ document.getElementById('gen').onclick = () => {
   const chinese = [];
   const italian = [];
 
-  // Separazione cinese / italiano con pinyin
   titles.forEach((t,i)=>{
     const link = links[i];
     if(isChinese(t)){
@@ -59,44 +69,52 @@ document.getElementById('gen').onclick = () => {
     }
   });
 
-  // Ordinamento
   chinese.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
   italian.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
 
-  // Funzione per generare Markdown raggruppato per iniziale
-  function generateSection(list){
-    let markdown = "";
-    let currentLetter = "";
-    let counter = 1;
-    list.forEach(item=>{
-      const letter = item.pinyin[0].toUpperCase();
-      if(letter && letter !== currentLetter){
-        currentLetter = letter;
-        markdown += `\n## ${currentLetter}\n`;
-      }
+  const groupedChinese = groupByInitial(chinese);
+  const groupedItalian = groupByInitial(italian);
+
+  // Genera Markdown raggruppato per lettera
+  let markdown = "### CINESE\n";
+  let counter = 1;
+  Object.keys(groupedChinese).sort().forEach(letter=>{
+    markdown += `\n## ${letter}\n`;
+    groupedChinese[letter].forEach(item=>{
       markdown += `${counter}. ${item.title} ${item.link}\n`;
       counter++;
     });
-    return markdown;
-  }
+  });
 
-  // Genera Markdown completo
-  let markdown = "### CINESE\n" + generateSection(chinese) + "\n\n### ITALIANO\n" + generateSection(italian);
+  markdown += "\n### ITALIANO\n";
+  counter = 1;
+  Object.keys(groupedItalian).sort().forEach(letter=>{
+    markdown += `\n## ${letter}\n`;
+    groupedItalian[letter].forEach(item=>{
+      markdown += `${counter}. ${item.title} ${item.link}\n`;
+      counter++;
+    });
+  });
+
   document.getElementById('out').textContent = markdown.trim();
 
-  // Anteprima HTML
+  // Genera anteprima HTML cliccabile
   let html = "<h3>CINESE</h3>";
-  let counter = 1;
-  chinese.forEach(item=>{
-    html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
-    counter++;
+  Object.keys(groupedChinese).sort().forEach(letter=>{
+    html += `<h4>${letter}</h4>`;
+    groupedChinese[letter].forEach((item,i)=>{
+      html += `<div>${i+1}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+    });
   });
+
   html += "<h3>ITALIANO</h3>";
-  counter = 1;
-  italian.forEach(item=>{
-    html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
-    counter++;
+  Object.keys(groupedItalian).sort().forEach(letter=>{
+    html += `<h4>${letter}</h4>`;
+    groupedItalian[letter].forEach((item,i)=>{
+      html += `<div>${i+1}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+    });
   });
+
   document.getElementById('preview').innerHTML = html;
 };
 
