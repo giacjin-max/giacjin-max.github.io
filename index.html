@@ -29,7 +29,7 @@ div.item{margin-bottom:4px;}
 
 <p>
   <button id="gen">Genera Live Preview</button>
-  <button id="copy">Copia Lista Finale</button>
+  <button id="copy">Copia Live Preview</button>
 </p>
 
 <div id="preview"></div>
@@ -99,35 +99,11 @@ document.getElementById('gen').onclick = () => {
   document.getElementById('preview').innerHTML = latestHTML;
 };
 
-// Copia lista finale con nomi cliccabili senza mostrare link
+// Copia la live preview così com’è
 document.getElementById('copy').onclick = () => {
   if(!latestHTML){ alert("⚠️ Genera prima la live preview!"); return; }
-  
-  // Crea un div temporaneo per estrarre solo i tag <a>
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = latestHTML;
-
-  // Prendi solo i div con class="item" e ricrea HTML cliccabile senza mostrare l'URL
-  const items = tempDiv.querySelectorAll("div.item");
-  let copyHTML = "";
-  let currentSection = "";
-  tempDiv.querySelectorAll("h3,h4").forEach(el=>{
-    if(el.tagName === "H3"){
-      currentSection = el.textContent;
-      copyHTML += `<h3>${currentSection}</h3>\n`;
-    } else if(el.tagName === "H4"){
-      copyHTML += `<h4>${el.textContent}</h4>\n`;
-    }
-  });
-
-  // Aggiungi i nomi cliccabili
-  items.forEach(item=>{
-    const a = item.querySelector("a");
-    if(a) copyHTML += `<div>${a.outerHTML}</div>\n`;
-  });
-
-  navigator.clipboard.writeText(copyHTML)
-    .then(()=>alert("✅ Lista finale con nomi cliccabili copiata negli appunti!"))
+  navigator.clipboard.writeText(latestHTML)
+    .then(()=>alert("✅ Live preview copiata negli appunti!"))
     .catch(err=>alert("❌ Errore copia: "+err));
 };
 </script>
