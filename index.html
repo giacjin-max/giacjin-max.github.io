@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generatore Markdown Cinese/Italiano Completo</title>
+<title>Generatore Markdown Cinese/Italiano con JSON</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
@@ -15,7 +15,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 </head>
 <body>
 
-<h2>📘 Generatore Markdown Cinese / Italiano Completo</h2>
+<h2>📘 Generatore Markdown Cinese / Italiano con JSON</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -32,18 +32,14 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 <div id="preview"></div>
 
 <script>
-// ------------------ Mappa pinyin completa ------------------
-// Qui trovi una versione ridotta, puoi integrare con tutti i caratteri comuni
-const fullPinyinMap = {
-"你":"ni","好":"hao","我":"wo","的":"de","学":"xue","生":"sheng",
-"中":"zhong","国":"guo","汉":"han","语":"yu","爱":"ai","编":"bian",
-"程":"cheng","测":"ce","试":"shi","例":"li","文":"wen","时":"shi",
-"间":"jian","快":"kuai","乐":"le","天":"tian","气":"qi","好":"hao",
-"学":"xue","习":"xi","汉":"han","字":"zi","测":"ce","验":"yan"
-};
-// Puoi aggiungere altri caratteri comuni qui o caricare un file JSON esterno
+let fullPinyinMap = {};
 
-// ------------------ Funzioni ------------------
+// Carica JSON
+fetch('pinyin.json')
+  .then(response => response.json())
+  .then(data => { fullPinyinMap = data; })
+  .catch(err => console.error("Errore caricamento pinyin.json:", err));
+
 function isChinese(str){ return /[\u4e00-\u9fff]/.test(str); }
 function fullPinyin(str){ return str.split('').map(c => fullPinyinMap[c] || c).join(''); }
 function groupByInitial(list){
@@ -56,7 +52,6 @@ function groupByInitial(list){
   return groups;
 }
 
-// ------------------ Generazione ------------------
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
   const links = document.getElementById('links').value.trim().split(/\r?\n/).filter(Boolean);
@@ -80,7 +75,6 @@ document.getElementById('gen').onclick = () => {
   const groupedChinese = groupByInitial(chinese);
   const groupedItalian = groupByInitial(italian);
 
-  // Genera Markdown con numerazione interna alle sezioni
   function generateMarkdown(groups){
     let markdown = "";
     let counter = 1;
@@ -99,7 +93,6 @@ document.getElementById('gen').onclick = () => {
 
   document.getElementById('out').textContent = markdown.trim();
 
-  // Anteprima HTML
   function generatePreview(groups){
     let html = "";
     let counter = 1;
@@ -118,7 +111,6 @@ document.getElementById('gen').onclick = () => {
   document.getElementById('preview').innerHTML = html;
 };
 
-// Copia Markdown
 document.getElementById('copy').onclick = () => {
   navigator.clipboard.writeText(document.getElementById('out').textContent)
     .then(()=>alert("✅ Markdown copiato!"));
