@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generatore Markdown stabile</title>
+<title>Generatore Markdown senza parentesi</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
 button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-radius:5px;cursor:pointer}
 #gen{background:#007bff;color:white;} #copy{background:#28a745;color:white;}
-#out{white-space:pre-wrap;background:#fff;padding:12px;border:1px solid #ddd;margin-top:10px;}
+#out, #preview{white-space:pre-wrap;background:#fff;padding:12px;border:1px solid #ddd;margin-top:10px;}
+#preview a{color:#007bff;text-decoration:none;} #preview a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
 
-<h2>📘 Generatore Markdown</h2>
+<h2>📘 Generatore Markdown senza parentesi</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -28,25 +29,22 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 </p>
 
 <pre id="out"></pre>
+<div id="preview"></div>
 
 <script>
 function isChinese(str){ return /[\u4e00-\u9fff]/.test(str); }
 
-// Funzione semplice per convertire cinese in pinyin base (senza toni)
-// Utilizza solo lettere latine di base per ordinamento
+// Funzione semplice pinyin
 function simplePinyin(str){
-  const map = { "你":"ni", "好":"hao", "我":"wo", "的":"de" }; // aggiungi altri caratteri se vuoi
-  return str.split('').map(c => map[c] || c).join('');
+  const map = {"你":"ni","好":"hao","我":"wo","的":"de"}; 
+  return str.split('').map(c=>map[c]||c).join('');
 }
 
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
   const links = document.getElementById('links').value.trim().split(/\r?\n/).filter(Boolean);
 
-  if (titles.length !== links.length){
-    alert("⚠️ Il numero di titoli e link deve corrispondere!");
-    return;
-  }
+  if(titles.length !== links.length){ alert("⚠️ Titoli e link devono corrispondere!"); return; }
 
   const data = titles.map((t,i)=>({
     title: t,
@@ -55,31 +53,41 @@ document.getElementById('gen').onclick = () => {
     pinyin: isChinese(t) ? simplePinyin(t).toLowerCase() : t.toLowerCase()
   }));
 
-  // Ordinamento: cinese per pinyin, italiano per titolo
-  data.sort((a,b)=>{
-    return a.pinyin.localeCompare(b.pinyin);
+  data.sort((a,b)=> a.pinyin.localeCompare(b.pinyin));
+
+  const groups = {};
+  data.forEach(item=>{
+    const letter = item.pinyin[0].toUpperCase();
+    if(!groups[letter]) groups[letter] = [];
+    groups[letter].push(item);
   });
 
   let markdown = "";
-  let currentLetter = "";
   let counter = 1;
-
-  data.forEach(item=>{
-    const letter = item.pinyin[0].toUpperCase();
-    if(letter && letter !== currentLetter){
-      currentLetter = letter;
-      markdown += `\n## ${currentLetter}\n`;
-    }
-    markdown += `${counter}. [${item.title}](${item.link})\n`;
-    counter++;
-  });
+  for(const letter of Object.keys(groups).sort()){
+    markdown += `\n## ${letter}\n`;
+    groups[letter].forEach(item=>{
+      markdown += `${counter}. ${item.title} ${item.link}\n`;
+      counter++;
+    });
+  }
 
   document.getElementById('out').textContent = markdown.trim();
+
+  // Anteprima HTML cliccabile
+  let html = "";
+  for(const letter of Object.keys(groups).sort()){
+    html += `<h3>${letter}</h3>`;
+    groups[letter].forEach((item,i)=>{
+      html += `<div>${i+1}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+    });
+  }
+  document.getElementById('preview').innerHTML = html;
 };
 
 document.getElementById('copy').onclick = () => {
-  const text = document.getElementById('out').textContent;
-  navigator.clipboard.writeText(text).then(()=> alert("✅ Markdown copiato!"));
+  navigator.clipboard.writeText(document.getElementById('out').textContent)
+    .then(()=>alert("✅ Markdown copiato!"));
 };
 </script>
 </body>
