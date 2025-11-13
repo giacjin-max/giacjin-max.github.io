@@ -12,6 +12,7 @@ body {
 }
 h1 {
   text-align: center;
+  color: #222;
 }
 textarea {
   width: 100%;
@@ -96,9 +97,9 @@ function generateMarkdown() {
     const letter = item.title[0].toUpperCase();
     if (letter !== currentLetter) {
       currentLetter = letter;
-      markdown += `\n## ${letter}\n`;
+      markdown += \n## ${letter}\n;
     }
-    markdown += `${count}. [${item.title}](${item.link})\n`;
+    markdown += ${count}. [${item.title}](${item.link})\n;
     count++;
   });
 
