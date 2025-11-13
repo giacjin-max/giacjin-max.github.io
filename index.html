@@ -37,9 +37,8 @@ div.item{margin-bottom:4px;}
 <script>
 let fullPinyinMap = {};
 
-// Carica JSON remoto con mappa completa pinyin
 fetch('https://raw.githubusercontent.com/guoyunhe/pinyin-json/master/hanzi-no-tone-pinyin-table.json')
-  .then(response => response.json())
+  .then(r => r.json())
   .then(data => { fullPinyinMap = data; })
   .catch(err => console.error("Errore caricamento pinyin.json:", err));
 
@@ -55,37 +54,30 @@ function groupByInitial(list){
   return groups;
 }
 
-let latestHTML = ""; // Salva la lista finale HTML
+let latestHTML = "";
 
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
   const links = document.getElementById('links').value.trim().split(/\r?\n/).filter(Boolean);
   if(titles.length !== links.length){ alert("⚠️ Titoli e link devono corrispondere!"); return; }
 
-  const chinese = [];
-  const italian = [];
-
+  const chinese = [], italian = [];
   titles.forEach((t,i)=>{
     const link = links[i];
-    if(isChinese(t)){
-      chinese.push({title: t, link: link, pinyin: fullPinyin(t).toLowerCase()});
-    } else {
-      italian.push({title: t, link: link, pinyin: t.toLowerCase()});
-    }
+    if(isChinese(t)) chinese.push({title: t, link: link, pinyin: fullPinyin(t).toLowerCase()});
+    else italian.push({title: t, link: link, pinyin: t.toLowerCase()});
   });
 
   chinese.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
   italian.sort((a,b)=>a.pinyin.localeCompare(b.pinyin));
 
-  const groupedChinese = groupByInitial(chinese);
-  const groupedItalian = groupByInitial(italian);
-
-  function generatePreview(groups){
-    let html = "";
-    let counter = 1;
-    Object.keys(groups).sort().forEach(letter=>{
+  function buildSection(list, sectionName){
+    const grouped = groupByInitial(list);
+    let html = `<h3>${sectionName}</h3>`;
+    Object.keys(grouped).sort().forEach(letter=>{
       html += `<h4>${letter}</h4>`;
-      groups[letter].forEach(item=>{
+      let counter = 1;
+      grouped[letter].forEach(item=>{
         html += `<div class="item">${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
         counter++;
       });
@@ -93,13 +85,10 @@ document.getElementById('gen').onclick = () => {
     return html;
   }
 
-  latestHTML = "<h3>CINESE</h3>" + generatePreview(groupedChinese);
-  latestHTML += "<h3>ITALIANO</h3>" + generatePreview(groupedItalian);
-
+  latestHTML = buildSection(chinese, "CINESE") + buildSection(italian, "ITALIANO");
   document.getElementById('preview').innerHTML = latestHTML;
 };
 
-// Copia la live preview così com’è
 document.getElementById('copy').onclick = () => {
   if(!latestHTML){ alert("⚠️ Genera prima la live preview!"); return; }
   navigator.clipboard.writeText(latestHTML)
