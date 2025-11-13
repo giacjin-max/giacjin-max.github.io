@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generatore Markdown - Ordinamento Pinyin</title>
+<title>Generatore Markdown - Pinyin corretto</title>
 <style>
 body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
@@ -12,7 +12,7 @@ a{color:#007bff;text-decoration:none} a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<h2>📘 Generatore Markdown (ordine pinyin corretto)</h2>
+<h2>📘 Generatore Markdown (pinyin corretto)</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -59,18 +59,19 @@ document.getElementById('gen').onclick = () => {
   let counter = 1;
 
   data.forEach(item=>{
-    const letter = (item.isChinese ? item.pinyin[0] : item.title[0] || "").toUpperCase();
+    // Intestazione basata su prima lettera del pinyin per cinese
+    const letter = (item.isChinese ? item.pinyin[0] : item.title[0]).toUpperCase();
     if(letter && letter !== currentLetter){
       currentLetter = letter;
-      markdown += \n## ${currentLetter}\n;
+      markdown += `\n## ${currentLetter}\n`;
     }
-    markdown += ${counter}. [${item.title}](${item.link})\n;
+    markdown += `${counter}. [${item.title}](${item.link})\n`;
     counter++;
   });
 
   document.getElementById('out').textContent = markdown.trim();
 
-  // preview cliccabile
+  // anteprima HTML
   let html = markdown
     .replace(/^## (.+)$/gm, "<h3>$1</h3>")
     .replace(/(\d+)\. \[(.+?)\]\((.+?)\)/g, '<div>$1. <a href="$3" target="_blank">$2</a></div>');
