@@ -2,15 +2,14 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generatore Markdown</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generatore Markdown stabile</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
 button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-radius:5px;cursor:pointer}
 #gen{background:#007bff;color:white;} #copy{background:#28a745;color:white;}
 #out{white-space:pre-wrap;background:#fff;padding:12px;border:1px solid #ddd;margin-top:10px;}
-a{color:#007bff;text-decoration:none} a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -30,35 +29,35 @@ a{color:#007bff;text-decoration:none} a:hover{text-decoration:underline}
 
 <pre id="out"></pre>
 
-<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@2.4.0/dist/pinyin-pro.min.js"></script>
-
 <script>
 function isChinese(str){ return /[\u4e00-\u9fff]/.test(str); }
+
+// Funzione semplice per convertire cinese in pinyin base (senza toni)
+// Utilizza solo lettere latine di base per ordinamento
+function simplePinyin(str){
+  const map = { "你":"ni", "好":"hao", "我":"wo", "的":"de" }; // aggiungi altri caratteri se vuoi
+  return str.split('').map(c => map[c] || c).join('');
+}
 
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
   const links = document.getElementById('links').value.trim().split(/\r?\n/).filter(Boolean);
 
-  if (titles.length !== links.length) {
+  if (titles.length !== links.length){
     alert("⚠️ Il numero di titoli e link deve corrispondere!");
     return;
   }
 
-  const hasPinyin = typeof window.pinyinPro !== "undefined";
   const data = titles.map((t,i)=>({
     title: t,
     link: links[i],
     isChinese: isChinese(t),
-    pinyin: hasPinyin ? window.pinyinPro.pinyin(t, {toneType:'none'}) : t
+    pinyin: isChinese(t) ? simplePinyin(t).toLowerCase() : t.toLowerCase()
   }));
 
-  // Ordinamento: cinese per pinyin completo, italiano per titolo
+  // Ordinamento: cinese per pinyin, italiano per titolo
   data.sort((a,b)=>{
-    if(a.isChinese && !b.isChinese) return -1;
-    if(!a.isChinese && b.isChinese) return 1;
-    const ka = a.isChinese ? a.pinyin.toLowerCase() : a.title.toLowerCase();
-    const kb = b.isChinese ? b.pinyin.toLowerCase() : b.title.toLowerCase();
-    return ka.localeCompare(kb);
+    return a.pinyin.localeCompare(b.pinyin);
   });
 
   let markdown = "";
@@ -66,7 +65,7 @@ document.getElementById('gen').onclick = () => {
   let counter = 1;
 
   data.forEach(item=>{
-    const letter = item.isChinese ? item.pinyin[0].toUpperCase() : item.title[0].toUpperCase();
+    const letter = item.pinyin[0].toUpperCase();
     if(letter && letter !== currentLetter){
       currentLetter = letter;
       markdown += `\n## ${currentLetter}\n`;
