@@ -29,7 +29,7 @@ div.item{margin-bottom:4px;}
 
 <p>
   <button id="gen">Genera Live Preview</button>
-  <button id="copy">Copia Live Preview</button>
+  <button id="copy">Copia Lista Finale</button>
 </p>
 
 <div id="preview"></div>
@@ -54,6 +54,8 @@ function groupByInitial(list){
   });
   return groups;
 }
+
+let latestHTML = ""; // Salva la lista finale HTML
 
 document.getElementById('gen').onclick = () => {
   const titles = document.getElementById('titles').value.trim().split(/\r?\n/).filter(Boolean);
@@ -91,16 +93,17 @@ document.getElementById('gen').onclick = () => {
     return html;
   }
 
-  let html = "<h3>CINESE</h3>" + generatePreview(groupedChinese);
-  html += "<h3>ITALIANO</h3>" + generatePreview(groupedItalian);
-  document.getElementById('preview').innerHTML = html;
+  latestHTML = "<h3>CINESE</h3>" + generatePreview(groupedChinese);
+  latestHTML += "<h3>ITALIANO</h3>" + generatePreview(groupedItalian);
+
+  document.getElementById('preview').innerHTML = latestHTML;
 };
 
-// Copia live preview
+// Copia lista finale HTML cliccabile
 document.getElementById('copy').onclick = () => {
-  const previewContent = document.getElementById('preview').innerHTML;
-  navigator.clipboard.writeText(previewContent)
-    .then(()=>alert("✅ Live preview copiato negli appunti!"))
+  if(!latestHTML){ alert("⚠️ Genera prima la live preview!"); return; }
+  navigator.clipboard.writeText(latestHTML)
+    .then(()=>alert("✅ Lista finale copiato negli appunti!"))
     .catch(err=>alert("❌ Errore copia: "+err));
 };
 </script>
