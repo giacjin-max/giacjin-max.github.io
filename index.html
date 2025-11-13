@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generatore Markdown Avanzato</title>
+<title>Generatore Markdown Avanzato Continuo</title>
 <style>
 body{font-family:Arial,sans-serif;margin:20px;background:#f7f7f7;color:#222;}
 textarea{width:100%;height:120px;margin:6px 0;padding:8px;font-size:14px;}
@@ -15,7 +15,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 </head>
 <body>
 
-<h2>📘 Generatore Markdown Avanzato</h2>
+<h2>📘 Generatore Markdown Avanzato Continuo</h2>
 
 <p><b>Titoli (uno per riga):</b></p>
 <textarea id="titles" placeholder="Inserisci titoli qui..."></textarea>
@@ -34,7 +34,7 @@ button{padding:8px 12px;margin:4px 4px 8px 0;font-size:15px;border:none;border-r
 <script>
 function isChinese(str){ return /[\u4e00-\u9fff]/.test(str); }
 
-// Funzione semplice pinyin (aggiungi caratteri comuni se vuoi)
+// Funzione semplice pinyin
 function simplePinyin(str){
   const map = {"你":"ni","好":"hao","我":"wo","的":"de"}; 
   return str.split('').map(c=>map[c]||c).join('');
@@ -75,7 +75,7 @@ document.getElementById('gen').onclick = () => {
   const groupedChinese = groupByInitial(chinese);
   const groupedItalian = groupByInitial(italian);
 
-  // Genera Markdown raggruppato per lettera
+  // Genera Markdown con numerazione continua
   let markdown = "### CINESE\n";
   let counter = 1;
   Object.keys(groupedChinese).sort().forEach(letter=>{
@@ -87,7 +87,6 @@ document.getElementById('gen').onclick = () => {
   });
 
   markdown += "\n### ITALIANO\n";
-  counter = 1;
   Object.keys(groupedItalian).sort().forEach(letter=>{
     markdown += `\n## ${letter}\n`;
     groupedItalian[letter].forEach(item=>{
@@ -98,20 +97,23 @@ document.getElementById('gen').onclick = () => {
 
   document.getElementById('out').textContent = markdown.trim();
 
-  // Genera anteprima HTML cliccabile
+  // Anteprima HTML
   let html = "<h3>CINESE</h3>";
+  counter = 1;
   Object.keys(groupedChinese).sort().forEach(letter=>{
     html += `<h4>${letter}</h4>`;
-    groupedChinese[letter].forEach((item,i)=>{
-      html += `<div>${i+1}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+    groupedChinese[letter].forEach(item=>{
+      html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+      counter++;
     });
   });
 
   html += "<h3>ITALIANO</h3>";
   Object.keys(groupedItalian).sort().forEach(letter=>{
     html += `<h4>${letter}</h4>`;
-    groupedItalian[letter].forEach((item,i)=>{
-      html += `<div>${i+1}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+    groupedItalian[letter].forEach(item=>{
+      html += `<div>${counter}. <a href="${item.link}" target="_blank">${item.title}</a></div>`;
+      counter++;
     });
   });
 
