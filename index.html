@@ -62,9 +62,9 @@ document.getElementById('gen').onclick = () => {
     const letter = (item.isChinese ? item.pinyin[0] : item.title[0] || "").toUpperCase();
     if(letter && letter !== currentLetter){
       currentLetter = letter;
-      markdown += `\n## ${currentLetter}\n`;
+      markdown += \n## ${currentLetter}\n;
     }
-    markdown += `${counter}. [${item.title}](${item.link})\n`;
+    markdown += ${counter}. [${item.title}](${item.link})\n;
     counter++;
   });
 
